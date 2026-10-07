@@ -66,6 +66,12 @@ export function useLobby(
       element.autoplay = true
       document.body.appendChild(element)
       audioElements.set(track.sid ?? String(audioElements.size), element)
+      // Intento explícito de reproducción. Si el navegador lo bloquea por su
+      // política de autoplay, el estado se refleja en el botón "Activar audio".
+      void element.play().catch(() => {
+        // Reproducción bloqueada por el navegador: mostramos el botón.
+        if (active) setCanPlaybackAudio(false)
+      })
     }
 
     const handleTrackUnsubscribed = (track: RemoteTrack) => {
@@ -101,6 +107,21 @@ export function useLobby(
         onDisconnectedRef.current?.()
       })
 
+    // Los navegadores solo permiten reproducir audio tras un gesto del usuario.
+    // Desbloqueamos la salida en cuanto se toca/pulsa/teclea en cualquier parte.
+    const unlockAudio = () => {
+      void room
+        .startAudio()
+        .catch(() => {
+          // Se reintentará con el botón "Activar audio" si sigue bloqueado.
+        })
+        .finally(() => {
+          if (active) setCanPlaybackAudio(room.canPlaybackAudio)
+        })
+    }
+    window.addEventListener('pointerdown', unlockAudio, { once: true })
+    window.addEventListener('keydown', unlockAudio, { once: true })
+
     void (async () => {
       try {
         await room.connect(serverUrl, token)
@@ -124,6 +145,8 @@ export function useLobby(
 
     return () => {
       active = false
+      window.removeEventListener('pointerdown', unlockAudio)
+      window.removeEventListener('keydown', unlockAudio)
       audioElements.forEach((element) => element.remove())
       audioElements.clear()
       room.removeAllListeners()
@@ -138,7 +161,12 @@ export function useLobby(
   }, [room])
 
   const enableAudio = useCallback(() => {
-    void room.startAudio().then(() => setCanPlaybackAudio(room.canPlaybackAudio))
+    void room
+      .startAudio()
+      .catch(() => {
+        // Todavía bloqueado; el botón sigue visible.
+      })
+      .finally(() => setCanPlaybackAudio(room.canPlaybackAudio))
   }, [room])
 
   const leave = useCallback(() => {

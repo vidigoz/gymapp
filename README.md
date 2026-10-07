@@ -100,6 +100,31 @@ LiveKit (SFU)  ◀── 3) el navegador se conecta con el token y el audio viaj
    sala. Verás a cada persona, quién está hablando y podrás silenciar tu micrófono
    o salir.
 
+## Solución de problemas
+
+### No escucho a las demás personas (aunque mi micrófono sí funciona)
+
+Es la **política de autoplay** del navegador: reproducir audio está bloqueado
+hasta que haya un gesto (toque/clic). El micrófono no se ve afectado, pero la
+salida sí. Cómo resolverlo:
+
+- Toca en cualquier parte de la pantalla, o pulsa el botón **🔊 Toca para activar
+  el audio** que aparece. La app también lo desbloquea con el primer toque.
+- **Prueba con dos dispositivos** (o Chrome + Edge), no con dos pestañas del
+  mismo navegador, y usa **audífonos**. Dos pestañas con el mismo micrófono y las
+  mismas bocinas activan la cancelación de eco y "se comen" la voz (eco/silencio).
+- Comprueba que ambas personas escribieron **el mismo nombre de lobby**.
+- En el móvil, el audio se pausa al bloquear la pantalla (limitación de la web).
+
+### El navegador no pide permiso de micrófono / no conecta
+
+Los navegadores solo permiten el micrófono en **HTTPS** o `localhost`. En Netlify
+es automático; en pruebas locales abre `http://localhost`, no la IP de la LAN.
+
+### `netlify dev` no arranca
+
+Revisa la sección *Notas técnicas* (más abajo): TypeScript 5.x y versión de Node.
+
 ## Estructura
 
 ```
